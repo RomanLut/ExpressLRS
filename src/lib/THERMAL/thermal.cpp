@@ -46,7 +46,7 @@ uint8_t Thermal::read_temp()
 {
     if(thermal_status != THERMAL_STATUS_NORMAL)
     {
-        ERRLN("thermal not ready!");
+        //ERRLN("thermal not ready!");
         return 0;
     }
 #ifdef HAS_THERMAL_LM75A
@@ -66,7 +66,7 @@ void Thermal::update_threshold(int index)
     prevIndex = index;
     if(thermal_status != THERMAL_STATUS_NORMAL)
     {
-        ERRLN("thermal not ready!");
+        //ERRLN("thermal not ready!");
         return;
     }
     int size = sizeof(thermal_threshold_data)/sizeof(thermal_threshold_data[0]);
