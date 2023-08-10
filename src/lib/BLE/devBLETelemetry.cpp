@@ -38,7 +38,6 @@ unsigned short const MANUFACTURER_NAME_SVC_UUID = 0x2A29;
 
 static uint32_t LastTMLLinkStatsPacketMillis = 0;
 static uint32_t LastTLMRCPacketMillis = 0;
-static bool initOnce = false;
 
 static SemaphoreHandle_t _mutex = nullptr;
 
@@ -167,24 +166,20 @@ static void BluetoothTelemetryUpdateDevice()
     NimBLEDevice::init("ExpressLRS Telemetry");
 
     //we do not want devices which are bound to BLE Joystick to connect to Telemetry service.
-    //start BLE Device with random address
-    //avoid frequent address changes
-    if ( initOnce == false )
-    {
-        initOnce = true;
-
-        ble_addr_t blead;
-        ble_hs_id_gen_rnd(1, &blead);
-        ble_hs_id_set_rnd(blead.val);
-    }
+    //BLE Joystick is using PUBLIC address
+    //start BLE Device with RANDOM address
+    //set RANDOM address as PUBLIC addres with last byte increased by 1
+    uint8_t blead[6];
+    memcpy( blead, NimBLEDevice::getAddress().getNative(), 6 );
+    blead[5] |= 0xC0;  //random address should have 11 at most significat bits
+    blead[0]++;
     NimBLEDevice::setOwnAddrType(BLE_OWN_ADDR_RANDOM);
+    ble_hs_id_set_rnd(blead);
 
     //Set MTU to max packet length + 3 bytes to be able to send packets longer then default 20 bytes.
     //Should be set on both ends - smaller from two is used.
-    BLEDevice::setMTU(CRSF_MAX_PACKET_LEN + 3);
+    NimBLEDevice::setMTU(CRSF_MAX_PACKET_LEN + 3);
 
-    /** Set low transmit power, default is 9db */
-    BLEDevice::setPower(ESP_PWR_LVL_P9);
     pServer = NimBLEDevice::createServer();
     NimBLEService *rcService = pServer->createService(TELEMETRY_SVC_UUID);
     rcCRSF = rcService->createCharacteristic(TELEMETRY_CRSF_UUID, NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::NOTIFY, CRSF_MAX_PACKET_LEN);
@@ -208,6 +203,20 @@ static void BluetoothTelemetryUpdateDevice()
         ->setValue(String(getRegulatoryDomain()));
 
     dInfo->start();
+
+    NimBLEDevice::setPower(ESP_PWR_LVL_P9, ESP_BLE_PWR_TYPE_DEFAULT);
+    NimBLEDevice::setPower(ESP_PWR_LVL_P9, ESP_BLE_PWR_TYPE_ADV);
+    NimBLEDevice::setPower(ESP_PWR_LVL_P9, ESP_BLE_PWR_TYPE_CONN_HDL0);
+    NimBLEDevice::setPower(ESP_PWR_LVL_P9, ESP_BLE_PWR_TYPE_CONN_HDL1);
+    NimBLEDevice::setPower(ESP_PWR_LVL_P9, ESP_BLE_PWR_TYPE_CONN_HDL2);
+    NimBLEDevice::setPower(ESP_PWR_LVL_P9, ESP_BLE_PWR_TYPE_CONN_HDL3);
+    NimBLEDevice::setPower(ESP_PWR_LVL_P9, ESP_BLE_PWR_TYPE_CONN_HDL4);
+    NimBLEDevice::setPower(ESP_PWR_LVL_P9, ESP_BLE_PWR_TYPE_CONN_HDL5);
+    NimBLEDevice::setPower(ESP_PWR_LVL_P9, ESP_BLE_PWR_TYPE_CONN_HDL6);
+    NimBLEDevice::setPower(ESP_PWR_LVL_P9, ESP_BLE_PWR_TYPE_CONN_HDL7);
+    NimBLEDevice::setPower(ESP_PWR_LVL_P9, ESP_BLE_PWR_TYPE_CONN_HDL8);
+
+    //NimBLEDevice::setPower(ESP_PWR_LVL_N12);
 
     NimBLEAdvertising *pAdvertising = NimBLEDevice::getAdvertising();
     pAdvertising->addServiceUUID(rcService->getUUID());
