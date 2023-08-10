@@ -183,8 +183,8 @@ static void BluetoothTelemetryUpdateDevice()
     //Should be set on both ends - smaller from two is used.
     BLEDevice::setMTU(CRSF_MAX_PACKET_LEN + 3);
 
-    /** Set low transmit power, default is 6db */
-    BLEDevice::setPower(ESP_PWR_LVL_P6);
+    /** Set low transmit power, default is 9db */
+    BLEDevice::setPower(ESP_PWR_LVL_P9);
     pServer = NimBLEDevice::createServer();
     NimBLEService *rcService = pServer->createService(TELEMETRY_SVC_UUID);
     rcCRSF = rcService->createCharacteristic(TELEMETRY_CRSF_UUID, NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::NOTIFY, CRSF_MAX_PACKET_LEN);
